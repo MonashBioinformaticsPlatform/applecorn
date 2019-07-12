@@ -1,0 +1,15 @@
+# ---- libraries ----
+
+library(drake)
+library(tidyverse)
+library(tidytree)
+library(dada2)
+library(phyloseq)
+library(DECIPHER)
+library(phangorn)
+library(vegan)
+library(DESeq2)
+library(edgeR)
+library(digest)
+library(doParallel)
+library(R.utils)
