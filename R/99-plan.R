@@ -1,5 +1,9 @@
 
 applecorn <- drake_plan(
-  report = knit(knitr_in("report.Rmd"), file_out("report.md"), quite = TRUE),
-  dada2 = dada2("raw-data")
+  dada2_res = run_dada2(raw_data),
+  taxa_res = run_taxa(),
+  report = rmarkdown::render(
+    knitr_in("report.Rmd"),
+    output_file = file_out("report.html"),
+    quiet = TRUE)
 )

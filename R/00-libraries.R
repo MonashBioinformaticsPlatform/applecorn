@@ -2,6 +2,7 @@
 
 library(drake)
 library(tidyverse)
+library(knitr)
 library(tidytree)
 library(dada2)
 library(phyloseq)
@@ -12,4 +13,4 @@ library(DESeq2)
 library(edgeR)
 library(digest)
 library(doParallel)
-library(R.utils)
+#library(R.utils)

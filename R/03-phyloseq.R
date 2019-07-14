@@ -1,7 +1,7 @@
 
 # ---- metadata ---
 
-metadata_fn <- "../mapping_file_clean.csv"
+metadata_fn <- "../mapping.tsv"
 r_data_dir <- "../data"
 
 taxtab_fn <- paste0(r_data_dir, "/", "taxtab.rds")
