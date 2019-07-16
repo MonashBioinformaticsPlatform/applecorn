@@ -1,24 +1,108 @@
 ---
-title: "Final results report for the mtcars example"
-author: kizza
+title: "Applecorn run"
 output:
   html_document:
     df_print: paged
+    code_folding: hide
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+    number_sections: false
+    theme: sandstone
+    highlight: espresso
 ---
 
-# The weight and fuel efficiency of cars
-
-Is there an association between the weight and the fuel efficiency of cars? To find out, we use the `mtcars` dataset from the `datasets` package. The `mtcars` data originally came from the 1974 Motor Trend US magazine, and it contains design and performance data on 32 models of automobile.
-
-Here, `wt` is weight in tons, and `mpg` is fuel efficiency in miles per gallon. We want to figure out if there is an association between `wt` and `mpg`. The `mtcars` dataset itself only has 32 rows, so we generated two larger bootstrapped datasets. We called them `small` and `large`.
-
-```{r example_chunk}
-library(drake)
-loadd(dada2_res)       # 64 rows
-# here
-dada2_res %>% arrange(-nonchim)
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE)
 ```
 
-# A note on knitr reports in drake projects.
+## Initial processing, DADA2 + phyloseq
 
-Because of the calls to `readd()` and `loadd()`, `drake` knows that `small`, `large`, and `coef_regression2_small` are dependencies of this R Markdown report. This dependency relationship is what causes the report to be processed at the very end.
+Initial processing of amplicon data done using DADA2 and phyloseq packages. Briefly raw fastq files
+quality filtered and trimmed, R1 and R2 reads overlaped to form a longer, merged reads and PCR duplicates
+collapsed. Usually these steps collectivelly called denoising the data.
+
+### DADA2
+
+Initial step of getting denoised sequences table
+
+```{r init}
+library(drake)
+loadd(dada2_res)
+loadd(taxtab)
+loadd(tree)
+loadd(ps)
+loadd(ps_filt)
+loadd(alpha)
+loadd(rare_curve)
+```
+
+```{r dada2_res1}
+dada2_res[["seqtab_nochim"]] %>% dim
+```
+
+Checking that data is okay, typically expect very low chimeric rate
+
+```{r dada2_res2}
+dada2_res[["chim_rate"]]
+```
+
+Per sample break down of total number of denoised reads. This is the library size per sample
+
+```{r dada2_res3
+dada2_res[["info"]] %>% arrange(-nonchim)
+```
+
+### Donig taxonomy assignment
+
+Assigning using green genes classifier. Total number of sequence and samples
+
+```{r taxa_res1}
+taxtab %>% dim
+```
+
+### Generating phyloseq object
+
+phyloseq object
+
+```{r phyloseq_obj}
+ps
+```
+
+### Phylogeny tree
+
+Plotting phylogeny tree to have a look how our ASVs behaving. This should be a routine step essentially at the start of any analysis. In this case we can see that there is one particular ASV that evidently doesn't fit the tree all that well. We should filter it out. This is particular important for downstream UniFrac analysis, since distance is calculated based on phylogeny as well as sequence similarity.
+
+This is how the phylogenic tree looks like after filtering "an odd ball out"
+
+```{r phylo_tree}
+ps_filt[["raw_tree"]]
+ps_filt[["filt_tree"]]
+```
+
+Based on the tree phyloseq object got filtered
+
+```{r phyloseq_obj_filt}
+ps_filt[["ps_filt"]]
+```
+
+Best practice as well would be BLAST that (those if multiple found) sequence to make sure it doesn't belong to your analysis. In this case this sequences BLASTed against mouse genome.
+
+## Alpha diversity
+
+Plot alpha diversity after rarefied to minimum depth
+
+```{r, min_depth}
+alpha[["min_depth"]]
+```
+
+```{r, alpha1}
+alpha[["plot"]]
+```
+
+## Rarefaction curve
+
+```{r rare_curve1, warning=F}
+rare_curve
+```

@@ -1,51 +1,58 @@
 
 # ---- metadata ---
 
-metadata_fn <- "../mapping.tsv"
-r_data_dir <- "../data"
+mk_phyloseq <- function(taxtab, seqtab_nochim, fitGTR, meta_data) {
 
-taxtab_fn <- paste0(r_data_dir, "/", "taxtab.rds")
-seqtab_nochim_fn <- paste0(r_data_dir, "/", "seqtab_nochim.rds")
-fitGTR_fn <- paste0(r_data_dir, "/", "fitGTR.rds")
-meta_fn <- paste0(r_data_dir, "/", "metadata.rds")
+  samdf <- read_csv(meta_data) %>%
+            column_to_rownames(var = 'sample') %>%
+            as.data.frame()
 
-seqtab_nochim <- readRDS(seqtab_nochim_fn)
-taxtab <- readRDS(taxtab_fn)
-fitGTR <- readRDS(fitGTR_fn)
+  ps <- phyloseq(tax_table(taxtab),
+                 sample_data(samdf),
+                 otu_table(seqtab_nochim, taxa_are_rows = FALSE),
+                 phy_tree(fitGTR$tree))
 
-# Here we have two sources of metadata "typical" source with several factors related
-# to the experiment, like treatment and other attributes related to the study like gender
-# And the second source is food frequecy questionaries (FFQ), which should also be considered
-# From memory there were some samples that had done FFQs but haven't been sequenced. Basically I
-# need to account for that and filter both metadata files after merging. For downstream analysis
-# phyloseq object needs to be "balanced"
+  r_data_dir <- "data"
+  ps_fn_rds <- paste0(r_data_dir, "/", "ps.rds")
+  ps_fn_rdata <- paste0(r_data_dir, "/", "ps.RData")
 
-meta_data <- meta_data %>% select(-BarcodeSequence,
-                                  -LinkerPrimerSequence,
-                                  -Description,
-                                  -Sample_Well)
+  if(!file.exists(ps_fn_rdata)) {
+    saveRDS(object = ps, file = ps_fn_rds)
+    save(ps, file = ps_fn_rdata)
+  } else {
+    load(ps_fn_rdata)
+  }
 
-samdf <- meta_data %>%
-          column_to_rownames(var = 'sample') %>%
-          as.data.frame()
+  if(!file_test("-d", "images")) {
+    dir.create("images", recursive = T)
+  }
 
-ps <- phyloseq(tax_table(taxtab),
-               sample_data(samdf),
-               otu_table(seqtab_nochim, taxa_are_rows = FALSE),
-               phy_tree(fitGTR$tree))
-
-ps
-
-ps_fn_rds <- paste0(r_data_dir, "/", "ps.rds")
-ps_fn_rdata <- paste0(r_data_dir, "/", "ps.RData")
-
-if(!file.exists(ps_fn_rdata)) {
-  saveRDS(object = ps, file = ps_fn_rds)
-  save(ps, file = ps_fn_rdata)
-} else {
-  load(ps_fn_rdata)
+  return(ps)
 }
 
-if(!file_test("-d", "../images")) {
-  dir.create("../images", recursive = T)
+# ---- phylo_tree ----
+
+filt_phyloseq <- function(ps) {
+
+  p_tree1 <- plot_tree(ps, method = "treeonly", title = "Raw tree")
+
+  ps_tree <- phy_tree(ps)
+  m <- ps_tree$edge.length %>% mean
+  s <- ps_tree$edge.length %>% sd
+
+  ps_filt <- prune_taxa(ps_tree$tip.label[ps_tree$edge[ps_tree$edge.length < m+(3*s), 2]], ps)
+  p_tree2 <- plot_tree(ps_filt, method = "treeonly", title = "Filtred tree")
+
+  r_data_dir <- "data"
+  ps_filt_fn <- paste0(r_data_dir, "/", "ps_filt.RData")
+
+  if(!file.exists(ps_filt_fn)) {
+    save(ps_filt, file = ps_filt_fn)
+  } else {
+    load(ps_filt_fn)
+  }
+
+  return(list("raw_tree" = p_tree1,
+	      "filt_tree" = p_tree2,
+	      "ps_filt" = ps_filt))
 }

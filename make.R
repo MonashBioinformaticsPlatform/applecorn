@@ -14,23 +14,37 @@ if(length(args) == 0) {
 			   	"USAGE: ",
 			   	basename(prog),
 			   	" <FASTQ_DIR>",
+			   	" <METADATA>",
+			   	" <CLASSIFIER>",
 				"\n\n")
   stop(msg)
 }
 
 raw_data <- normalizePath(args[1])
-if(!file_test("-d", raw_data)) {
-  msg <- paste0("\n\n",
-			   	"Directory doesn't exist. Check your path",
-			   	"\n--> ",
-			   	raw_data,
-			   	"\n\n")
-  stop(msg)
+metadata <- normalizePath(args[2])
+classifier <- normalizePath(args[3])
+
+f <- c(raw_data, metadata, classifier)
+
+file_chk <- function(f) {
+  if(!file.exists(f)) {
+    msg <- paste0("\n\n",
+  			   	"File doesn't exist. Check your path",
+  			   	"\n--> ",
+  			   	f,
+  			   	"\n\n")
+    stop(msg)
+  }
 }
+
+quite <- lapply(f, file_chk)
 
 libs <- c("R/00-libraries.R",
           "R/01-dada2.R",
           "R/02-taxa.R",
+          "R/03-phyloseq.R",
+          "R/04-rarefaction-curve.R",
+          "R/05-alpha.R",
           "R/99-plan.R")
 
 res_dir="applecorn-run"

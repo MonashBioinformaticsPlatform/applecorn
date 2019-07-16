@@ -140,7 +140,6 @@ run_dada2 <- function(fqs) {
   # ---- sanity_check1.1 ----
 
   chimeras_rate <- 1 - sum(seqtab_nochim)/sum(seqtab)
-  chimeras_rate
 
   # ---- lib_size_info1 ----
 
@@ -179,5 +178,7 @@ run_dada2 <- function(fqs) {
 
   #df_info %>% arrange(-nonchim) %>% knitr::kable()
 
-  return(df_info)
+  return(list("info" = df_info,
+	      "seqtab_nochim" = seqtab_nochim,
+	      "chim_rate" = chimeras_rate))
 }
