@@ -11,12 +11,13 @@ args <- commandArgs(trailingOnly = TRUE)
 
 if(length(args) == 0) {
   msg <- paste0("\n\n",
-			   	"USAGE: ",
-			   	basename(prog),
-			   	" <FASTQ_DIR>",
-			   	" <METADATA>",
-			   	" <CLASSIFIER>",
-				"\n\n")
+                "USAGE: ",
+                basename(prog),
+                " <FASTQ_DIR>",
+                " <METADATA>",
+                " <CLASSIFIER>",
+                " [OUTDIR_NAME]",
+                "\n\n")
   stop(msg)
 }
 
@@ -24,20 +25,47 @@ raw_data <- normalizePath(args[1])
 metadata <- normalizePath(args[2])
 classifier <- normalizePath(args[3])
 
+res_dir <- "applecorn-run"
+if(length(args) == 4) {
+  res_dir <- args[4]
+}
+
+if(!file_test("-d", res_dir)) {
+   dir.create(res_dir, recursive = T)
+}
+
+msg <- paste0("MSG: Setting working to ", res_dir)
+cat(msg, sep = "\n")
+
+
 f <- c(raw_data, metadata, classifier)
 
 file_chk <- function(f) {
   if(!file.exists(f)) {
     msg <- paste0("\n\n",
-  			   	"File doesn't exist. Check your path",
-  			   	"\n--> ",
-  			   	f,
-  			   	"\n\n")
+                  "File doesn't exist. Check your path",
+                  "\n--> ",
+                  f,
+                  "\n\n")
     stop(msg)
   }
 }
 
 quite <- lapply(f, file_chk)
+
+msg <- paste0("MSG: These are your input args: ",
+              "\n",
+              raw_data,
+              "\n",
+              metadata,
+              "\n",
+              classifier,
+              "\n",
+              res_dir)
+
+cat(msg, sep = "\n")
+
+setwd(res_dir)
 
 libs <- c("R/00-libraries.R",
           "R/01-dada2.R",
@@ -45,19 +73,17 @@ libs <- c("R/00-libraries.R",
           "R/03-phyloseq.R",
           "R/04-rarefaction-curve.R",
           "R/05-alpha.R",
+          "R/06-ordination.R",
           "R/99-plan.R")
-
-res_dir="applecorn-run"
-if(!file_test("-d", res_dir)) {
-   dir.create(res_dir, recursive = T)
-}
-
-setwd(res_dir)
 
 report_fn <- "report.Rmd"
 report_fn_full <- file.path(origin, report_fn)
 
-file.copy(report_fn_full, report_fn)
+report_dat <- readLines(report_fn_full)
+report_dat <- gsub("DATABASE_PLACE_HOLDER", basename(classifier), report_dat)
+writeLines(report_dat, report_fn)
+
+#file.copy(report_fn_full, report_fn)
 
 libs2 <- file.path(origin, libs)
 
@@ -72,9 +98,10 @@ ls()
 
 # Now it is time to actually run your project.
 #make(applecorn,
-#	 parallelism = "future",
-#	 jobs = detectCores()) # Or make(my_plan, jobs = 2), etc.
+#    parallelism = "future",
+#    jobs = detectCores()) # Or make(my_plan, jobs = 2), etc.
 make(applecorn)
+diagnose(rare_curve)
 ## Now, if you make(whole_plan) again, no work will be done
 ## because the results are already up to date.
 ## But change the code and some targets will rebuild.

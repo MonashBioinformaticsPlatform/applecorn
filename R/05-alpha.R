@@ -23,7 +23,8 @@ mk_alpha <- function(ps_filt) {
 
   p_alpha1 <- plot_richness(ps_filt_rarefied,
                             x="sample",
-                            measures=c("Observed", "Chao1", "Shannon", "Simpson"),
+                            #measures=c("Observed", "Chao1", "Shannon", "Simpson"),
+                            measures=c("Observed", "Chao1", "Shannon"),
                             color="treat")
 
   return(list("ps_filt_rarefied" = ps_filt_rarefied,

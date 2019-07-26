@@ -10,7 +10,7 @@ est_rare_richness <- function(ps_dat, measures, depth) {
 
   ps_dat_filt <- prune_samples(sample_sums(ps_dat) >= depth, ps_dat)
 
-  rarified_ps_dat <- rarefy_even_depth(ps_dat,
+  rarified_ps_dat <- rarefy_even_depth(ps_dat_filt,
                                        depth,
                                        verbose = FALSE)
 
@@ -34,6 +34,7 @@ mk_rare_curves <- function(ps_dat, measures, depths, parallel = TRUE) {
   }
 
   names(depths) <- depths # this enables automatic addition of the Depth to the output by ldply
+
   rare_curve <- purrr::map_dfr(depths,
                                est_rare_richness,
                                ps_dat = ps_dat,
@@ -97,7 +98,6 @@ do_rare_curve <- function(df_info, ps_filt) {
   n_reps <- 10
   depths <- rep(sizes, each = n_reps)
 
-  print(ps_filt)
   rare_curve <- mk_rare_curves(ps_filt,
                                c('Observed', 'Shannon'),
                                depths = depths)
@@ -109,8 +109,6 @@ do_rare_curve <- function(df_info, ps_filt) {
   # and so doing this
   # > rare_curve_sum %>% as_tibble() %>% select(Depth, Alpha_diversity_sd) %>% plot
   # tells us (as expected) that with bigger sample sd decreases
-
-  rare_curve %>% write_tsv("data/hey.tsv")
 
   rare_curve_sum <- rare_curve %>%
                         group_by(sample, depth, measure) %>%
@@ -144,10 +142,10 @@ do_rare_curve <- function(df_info, ps_filt) {
                                      limits = c(min(sizes), max(sizes))) +
                   facet_wrap(~measure, scales = 'free_y') +
                   ylab(paste("Alpha diversity, mean across", n_reps)) +
-                  ggtitle("Rarefaction curves")
+                  ggtitle("Rarefaction curves") +
+                  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
   return(p_rare)
-
 }
 
 # Perhaps rarefaction curve most of (by default) should always

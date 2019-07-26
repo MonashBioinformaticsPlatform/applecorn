@@ -3,7 +3,9 @@
 
 mk_phyloseq <- function(taxtab, seqtab_nochim, fitGTR, meta_data) {
 
-  samdf <- read_csv(meta_data) %>%
+  samdf <- read_tsv(meta_data) %>%
+  #samdf <- read_csv(meta_data) %>%
+            mutate(sample_id = sample) %>%
             column_to_rownames(var = 'sample') %>%
             as.data.frame()
 
@@ -43,6 +45,8 @@ filt_phyloseq <- function(ps) {
   ps_filt <- prune_taxa(ps_tree$tip.label[ps_tree$edge[ps_tree$edge.length < m+(3*s), 2]], ps)
   p_tree2 <- plot_tree(ps_filt, method = "treeonly", title = "Filtred tree")
 
+  outlier_seqs <-ps_tree$tip.label[ps_tree$edge[ps_tree$edge.length > m+(3*s), 2]]
+
   r_data_dir <- "data"
   ps_filt_fn <- paste0(r_data_dir, "/", "ps_filt.RData")
 
@@ -54,5 +58,6 @@ filt_phyloseq <- function(ps) {
 
   return(list("raw_tree" = p_tree1,
 	      "filt_tree" = p_tree2,
+	      "outlier_seqs" = outlier_seqs,
 	      "ps_filt" = ps_filt))
 }

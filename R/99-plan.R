@@ -6,7 +6,9 @@ applecorn <- drake_plan(
   ps = mk_phyloseq(taxtab, dada2_res[["seqtab_nochim"]], tree, metadata),
   ps_filt = filt_phyloseq(ps),
   alpha = mk_alpha(ps_filt[["ps_filt"]]),
-  rare_curve = do_rare_curve(dada2_res[["info"]], alpha[["ps_filt_rarefied"]]),
+  rare_curve = do_rare_curve(dada2_res[["info"]], ps_filt[["ps_filt"]]),
+  wunifrac = mk_ordination(ps_filt[['ps_filt']], "wunifrac"),
+  unifrac = mk_ordination(ps_filt[['ps_filt']], dist = "unifrac"),
   report = rmarkdown::render(
     knitr_in("report.Rmd"),
     output_file = file_out("report.html"),

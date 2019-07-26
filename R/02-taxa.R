@@ -17,7 +17,7 @@ do_taxa_ann <- function(seqtab_nochim, ref_fasta) {
 
   msg <- paste0("MSG: Total number of unique OTUs identified ",tot_seqs,
                 "\n",
-                "MSG: Mean length ", m,
+                "MSG: With mean read length ", m,
                 " and standard deviation ", s)
   cat(msg, sep = '\n')
 
@@ -26,7 +26,7 @@ do_taxa_ann <- function(seqtab_nochim, ref_fasta) {
 
   if(!file.exists(taxtab_fn)) {
 
-    msg <- paste0("MSG: Starting taxonomic annotation using, ", ref_fasta %>% basename, " database")
+    msg <- paste0("MSG: Starting taxonomic annotation using ", ref_fasta %>% basename, " database")
     cat(msg, sep = '\n')
 
     #WARNING: slow step 5-10 minutes
