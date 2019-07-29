@@ -88,6 +88,13 @@ writeLines(report_dat, report_fn)
 # Now, your functions and workflow plan should be in your environment.
 ls()
 
+plan <- file.path(origin, "plan.R")
+source(plan)
+
+if(debug) {
+  print(applecorn)
+}
+
 make(applecorn)
 
 end_time <- Sys.time()

@@ -85,6 +85,7 @@ do_seqtab_filt <- function(kraken_contams_fn, df_seq, seqtab_nochim) {
   chk <- df_seq %>%
             filter(md5 %in% contams)
 
+  r_data_dir <- "data"
   seqtab_nochim_filt_fn <- paste0(r_data_dir, "/", "seqtab_nochim_filt.rds")
   if(!file.exists(seqtab_nochim_filt_fn)) {
     seqtab_nochim_filt <- seqtab_nochim[, !(colnames(seqtab_nochim) %in% chk$seq)]
@@ -117,7 +118,7 @@ do_seqtab_filt <- function(kraken_contams_fn, df_seq, seqtab_nochim) {
   names(seqs) <- chk3$name2
   contams_fn <- paste0(r_data_dir, "/", "contams.fa")
 
-  if(!file.exists(otus_fn)) {
+  if(!file.exists(contams_fn)) {
     writeXStringSet(seqs, contams_fn)
   }
 
