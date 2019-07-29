@@ -25,7 +25,8 @@ mk_alpha <- function(ps_filt) {
                             x="sample",
                             #measures=c("Observed", "Chao1", "Shannon", "Simpson"),
                             measures=c("Observed", "Chao1", "Shannon"),
-                            color="treat")
+                            #color="treat")
+                            color=NULL)
 
   return(list("ps_filt_rarefied" = ps_filt_rarefied,
               "plot" = p_alpha1,

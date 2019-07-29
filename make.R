@@ -5,30 +5,44 @@ msg <- paste0("Starting applecorn run: ", start_time)
 cat(msg, sep = "\n")
 
 prog <- unlist(strsplit(commandArgs()[4], split = "--file="))[2]
+base_prog <- basename(prog)
 origin <- dirname(prog)
+
+config_fn <- "config.yml"
+if(!file.exists(config_fn)) {
+
+  msg <- paste0("Initiating config file. Please review ", config_fn, " file and restart ", base_prog)
+  cat(msg, sep = "\n")
+
+  config_full_fn <- file.path(origin, config_fn)
+  file.copy(config_full_fn, config_fn)
+}
 
 args <- commandArgs(trailingOnly = TRUE)
 
 if(length(args) == 0) {
   msg <- paste0("\n\n",
                 "USAGE: ",
-                basename(prog),
-                " <FASTQ_DIR>",
-                " <METADATA>",
-                " <CLASSIFIER>",
-                " [OUTDIR_NAME]",
+                base_prog,
+                " <CONFIG>",
                 "\n\n")
   stop(msg)
 }
 
-raw_data <- normalizePath(args[1])
-metadata <- normalizePath(args[2])
-classifier <- normalizePath(args[3])
+config_fn <- normalizePath(args[1])
+config <- yaml::read_yaml(config_fn)
 
-res_dir <- "applecorn-run"
-if(length(args) == 4) {
-  res_dir <- args[4]
+debug <- as.logical(config$debug)
+
+if(debug) {
+  print(origin)
+  print(config)
 }
+
+raw_data <- normalizePath(config$raw_data)
+metadata <- normalizePath(config$metadata)
+classifier <- normalizePath(config$classifier)
+res_dir <- config$output_dir
 
 if(!file_test("-d", res_dir)) {
    dir.create(res_dir, recursive = T)
@@ -37,7 +51,7 @@ if(!file_test("-d", res_dir)) {
 msg <- paste0("MSG: Setting working to ", res_dir)
 cat(msg, sep = "\n")
 
-
+#TODO: there is a smarter way of doing this, probably just use config list?
 f <- c(raw_data, metadata, classifier)
 
 file_chk <- function(f) {
@@ -53,28 +67,16 @@ file_chk <- function(f) {
 
 quite <- lapply(f, file_chk)
 
-msg <- paste0("MSG: These are your input args: ",
-              "\n",
-              raw_data,
-              "\n",
-              metadata,
-              "\n",
-              classifier,
-              "\n",
-              res_dir)
-
-cat(msg, sep = "\n")
-
 setwd(res_dir)
+if(debug) {
+  getwd()
+}
 
-libs <- c("R/00-libraries.R",
-          "R/01-dada2.R",
-          "R/02-taxa.R",
-          "R/03-phyloseq.R",
-          "R/04-rarefaction-curve.R",
-          "R/05-alpha.R",
-          "R/06-ordination.R",
-          "R/99-plan.R")
+libs <- list.files(file.path(origin, "R"), full.names = TRUE)
+if(debug) {
+  print(libs)
+}
+lapply(libs, source)
 
 report_fn <- "report.Rmd"
 report_fn_full <- file.path(origin, report_fn)
@@ -83,31 +85,11 @@ report_dat <- readLines(report_fn_full)
 report_dat <- gsub("DATABASE_PLACE_HOLDER", basename(classifier), report_dat)
 writeLines(report_dat, report_fn)
 
-#file.copy(report_fn_full, report_fn)
-
-libs2 <- file.path(origin, libs)
-
-lapply(libs2, source)
-
 # Now, your functions and workflow plan should be in your environment.
 ls()
 
-# Optionally plot the graph of your workflow.
-# config <- drake_config(my_plan) # nolint
-# vis_drake_graph(config)         # nolint
-
-# Now it is time to actually run your project.
-#make(applecorn,
-#    parallelism = "future",
-#    jobs = detectCores()) # Or make(my_plan, jobs = 2), etc.
 make(applecorn)
-diagnose(rare_curve)
-## Now, if you make(whole_plan) again, no work will be done
-## because the results are already up to date.
-## But change the code and some targets will rebuild.
-#
-## Read the output report.md file
-## for an overview of the project and the results.
+
 end_time <- Sys.time()
 msg <- paste0("Finished applecorn run: ", end_time)
 cat(msg, sep = "\n")
