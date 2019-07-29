@@ -33,6 +33,7 @@ applecorn <- drake_plan(
                         report = rmarkdown::render(
                           knitr_in("report.Rmd"),
                           output_file = file_out("report.html"),
+                          params = config,
                           quiet = TRUE)
 
                         )

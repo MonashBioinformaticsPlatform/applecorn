@@ -41,7 +41,7 @@ if(debug) {
 
 raw_data <- normalizePath(config$raw_data)
 metadata <- normalizePath(config$metadata)
-classifier <- normalizePath(config$classifier)
+classifier <- normalizePath(config$taxa_db)
 res_dir <- config$output_dir
 
 if(!file_test("-d", res_dir)) {
