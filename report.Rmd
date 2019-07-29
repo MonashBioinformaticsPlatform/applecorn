@@ -12,25 +12,36 @@ output:
     theme: sandstone
     highlight: espresso
 params:
-  taxa_db: "DATABASE_PLACE_HOLDER"
+  taxa_db: NA
+  rarefy: NA
+  kraken_filt: NA
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
                       message = FALSE)
+library(drake)
 ```
 
 ## Initialising the pipeline run
 
 ```{r init}
-library(drake)
 loadd(dada2_res)
 loadd(taxtab)
 loadd(tree)
+
+if(kraken_filt %>% as.logical) {
+  loadd(rare_curve)
+}
+
 loadd(ps)
 loadd(ps_filt)
 loadd(alpha)
-loadd(rare_curve)
+
+if(rarefy %>% as.logical) {
+  loadd(rare_curve)
+}
+
 loadd(unifrac)
 loadd(wunifrac)
 ```
@@ -128,7 +139,9 @@ alpha[["plot"]]
 ## Rarefaction curve
 
 ```{r rare_curve1, warning=F}
-rare_curve
+if(rarefy) {
+  rare_curve
+}
 ```
 
 ## Ordination

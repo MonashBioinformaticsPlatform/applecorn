@@ -79,11 +79,8 @@ if(debug) {
 lapply(libs, source)
 
 report_fn <- "report.Rmd"
-report_fn_full <- file.path(origin, report_fn)
-
-report_dat <- readLines(report_fn_full)
-report_dat <- gsub("DATABASE_PLACE_HOLDER", basename(classifier), report_dat)
-writeLines(report_dat, report_fn)
+report_full_fn <- file.path(origin, report_fn)
+file.copy(report_full_fn, report_fn)
 
 # Now, your functions and workflow plan should be in your environment.
 ls()
