@@ -1,0 +1,13 @@
+
+# user input
+raw_data: "raw-data"
+metadata: "metadata.tsv"
+taxa_db: "classifier.fa"
+output_dir: "applecorn-run"
+
+# fine turning
+rarefy: false
+kraken_filt: false
+kraken_contams_fn: "contams.txt"
+# other
+debug: false
