@@ -1,6 +1,5 @@
 ---
-title: "Applecorn run"
-date: "`r Sys.Date()`"
+title: "16S analysis"
 output:
   html_document:
     df_print: paged
@@ -11,148 +10,152 @@ output:
     number_sections: false
     theme: sandstone
     highlight: espresso
-params:
-  taxa_db: NA
-  rarefy: NA
-  kraken_filt: NA
+-params:
+-  origin: "."
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
-                      message = FALSE)
-library(drake)
+                      message = FALSE,
+                      warning = FALSE)
 ```
 
-## Initialising the pipeline run
+## Initiation
 
-```{r init}
-loadd(dada2_res)
-loadd(taxtab)
-loadd(tree)
+Below is a reflection of the modular setup of the analysis. The module names
+reflect the type of analysis / data manipulation that happens at that stage.
 
-if(kraken_filt %>% as.logical) {
-  loadd(rare_curve)
-}
+```{r cache=FALSE, include = F}
 
-loadd(ps)
-loadd(ps_filt)
-loadd(alpha)
-
-if(rarefy %>% as.logical) {
-  loadd(rare_curve)
-}
-
-loadd(unifrac)
-loadd(wunifrac)
+libs <- list.files(file.path(params$origin, "R"), full.names = TRUE)
+lapply(libs, knitr::read_chunk)
 ```
 
-## OTU picking and taxonomic assignment
+Loading required libraries for the whole analysis
 
-This pipeline uses [DADA2 R package](https://benjjneb.github.io/dada2/index.html) for denosing the data and OTU picking. Denosing typically includes these few things:
-
-- quality filtering and trimming of fastq files
-- R1 and R2 reads merging into single, long read (amplicon)
-- collapsing (filtering out) of PCR duplicates
-
-[DADA2](https://benjjneb.github.io/dada2/index.html) also helps with OUT assignment against know database. In this run we used ``r params$taxa_db`` database for OTU assignment. Typically after [DADA2](https://benjjneb.github.io/dada2/index.html) processing a [phyloseq object](https://joey711.github.io/phyloseq/index.html) gets formed with the help of [phyloseq R package](https://joey711.github.io/phyloseq/index.html). This is a convenience package that offers a suite of function to analysis the amplicon data.
-
-
-### DADA2 processing metrics
-
-```{r dada2_res1}
-d <- dada2_res[["seqtab_nochim"]] %>% dim
-chim <- dada2_res[["chim_rate"]]
-taxa_d <- taxtab %>% dim
+```{r libraries}
 ```
 
-```{r dada2_res2, include = F}
-chk <- "low"
-if(chim > 0.2) {
- chk <- "high"
-}
+## Initial processing, DADA2 + phyloseq
+
+Initial processing of amplicon data done using DADA2 and phyloseq packages. Briefly raw fastq files
+quality filtered and trimmed, R1 and R2 reads overlaped to form a longer, merged reads and PCR duplicates
+collapsed. Usually these steps collectivelly called denoising the data.
+
+### DADA2
+
+Initial step of getting denoised sequences table
+
+```{r get_seqtab, echo = F}
 ```
 
-Total number of samples in `r d[1]` with total number of OTUs `r d[2]`. Chimeric rate was `r chim`, which is `r chk`. Typically you expect very low chimeric rate. Number of OTUs remained after taxonomic assignment. It is possible that some OTUs weren't assigned to any class.
+Checking that data is okay, typically expect very low chimeric rate
 
-Table below provides per sample information of total number of inpurt raw reads and the reduction that happens as we move through denoising process.
+```{r sanity_check1.1}
+```
 
-```{r dada2_res3}
-dada2_res[["info"]] %>% arrange(-nonchim)
+Per sample break down of total number of denoised reads. This is the library size per sample
+
+```{r lib_size_info1}
+```
+
+### Donig taxonomy assignment
+
+Assigning using green genes classifier
+
+```{r taxonomy_assignment}
 ```
 
 ### Generating phyloseq object
 
-Typically four things go into making phyloseq object:
-
-- table with denoised OTUs per sample
-- experimental metadata
-- table with assigned OTUs to class
-- phylogenetic tree (optional, recommended)
-
-```{r phyloseq_obj, comment = ""}
-ps
+```{r metadata}
 ```
 
-## Phylogeny tree
+phyloseq object
+
+```{r phyloseq_obj}
+```
+
+### Phylogeny tree
 
 Plotting phylogeny tree to have a look how our ASVs behaving. This should be a routine step essentially at the start of any analysis. In this case we can see that there is one particular ASV that evidently doesn't fit the tree all that well. We should filter it out. This is particular important for downstream UniFrac analysis, since distance is calculated based on phylogeny as well as sequence similarity.
 
-```{r phylo_tree1}
-ps_filt[["raw_tree"]]
+This is how the phylogenic tree looks like after filtering "an odd ball out"
+
+```{r phylo_tree}
 ```
 
-This is phylogenic tree after filtering an outlier branches
+Best practice as well would be BLAST that (those if multiple found) sequence to make sure it doesn't belong to your analysis. In this case this sequences BLASTed against mouse genome.
 
-```{r phylo_tree2}
-ps_filt[["filt_tree"]]
-```
-
-We further need to filter those outlier sequences from the downstream analysis by filtering phyloseq object.
-
-```{r phyloseq_obj_filt, comment = ""}
-ps_filt[["ps_filt"]]
-```
-
-Generally it is good idea to also BLAST those outlier sequences to reassure yourself that they don't belong to the analysis
-
-```{r phyloseq_obj_filt2, comment = ""}
-seqs <- ps_filt[["outlier_seqs"]]
-for(i in 1:length(seqs)) {
-  n <- paste0(">Otu_", i)
-  seq <- seqs[i]
-  cat(n, seq, sep = "\n")
-}
-```
-
-## Alpha diversity
-
-```{r min_depth}
-d <- alpha[["min_depth"]]
-```
-
-Plot alpha diversity after rarefied to minimum depth of `r d[1]`
-
-```{r alpha1, warning = F}
-alpha[["plot"]]
+```{r phylo_tree_filt}
 ```
 
 ## Rarefaction curve
 
-```{r rare_curve1, warning=F}
-if(rarefy) {
-  rare_curve
-}
+```{r, rare_curve1, warning=F}
+```
+
+```{r, rare_curve2, warning=F}
+```
+
+## Alpha diversity
+
+Plot alpha diversity after rarefied to minimum depth
+
+```{r, alpha1, fig.width = 10, fig.height=6, warning=F}
 ```
 
 ## Ordination
 
-```{r ord1}
-unifrac[["ord_plt"]]
-wunifrac[["ord_plt"]]
+```{r ordination_init, warning=FALSE}
 ```
 
-## Session information
+### Presence and absence
 
-```{r sess_info, comment = ""}
-sessionInfo()
+```{r uw_unifrac_plot}
 ```
+
+### Abundance based
+
+It is good idea to compare Bray-Curtis dissimilarity distance with weighted UniFrac, since UniFrac takes phylogenetic relationship into consideration. The plot should resemble the same overall shape of the data. If the two plots don't appear similar then it is possible that there are some sequence contaminats, that causing outlieers in the phylogenetic tree. Those need to be removed, before re-calculating weighted UniFrac distance.
+
+```{r bray_plt}
+```
+
+```{r w_unifrac_plot1}
+```
+
+```{r mk_ord_plots, echo = F}
+```
+
+## PERMANOVA
+
+This is to set out significance that we are seeing on the weighted UniFrac PCoA plot about
+
+```{r permanova_pairwise, warning = F}
+```
+
+## Taxonomy
+
+```{r main_df_setup}
+```
+
+```{r taxonomy}
+```
+
+- [barplot link](images/taxa.html)
+
+## Differential taxa occurance
+
+```{r deseq2}
+```
+
+```{r viz_volcano}
+```
+
+- [volcano plot link](images/volcano.html)
+
+```{r viz_ma}
+```
+
+- [ma plot link](images/ma.html)

@@ -1,9 +1,12 @@
 
 # user input
-raw_data: "raw-data"
+raw_data:
+  - "raw-data"
+  - "raw-data2"
 metadata: "metadata.tsv"
 taxa_db: "classifier.fa"
 output_dir: "applecorn-run"
+report_fn: "report.Rmd"
 
 # fine turning
 rarefy: false
@@ -11,3 +14,19 @@ kraken_filt: false
 kraken_contams_fn: "contams.txt"
 # other
 debug: false
+
+#asv detection
+suffix: "_R1,_R2"
+split: "_L"
+extn: "fastq.gz"
+trim_left:
+  - 26
+  - 22
+trunc_len:
+  - 237
+  - 202
+max_ee:
+  - 1
+  - 1
+r_data_dir: "data"
+filt_path: "filtered"
