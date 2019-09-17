@@ -1,35 +1,14 @@
 
 # ---- taxonomy_assignment ----
 
-do_taxa_ann <- function(seqtab_nochim, ref_fasta) {
+do_taxa_ann <- function(seqtab_nochim,
+                        ref_fasta,
+                        r_data_dir = "data") {
 
-  # total number of OTUs
-  seqtab_nochim %>% dim
-  tot_seqs <- seqtab_nochim %>% ncol
-
-  seqs_len <- seqtab_nochim %>%
-                colnames() %>%
-                lapply(nchar) %>%
-                unlist
-
-  m <- seqs_len %>% mean %>% round(2)
-  s <- seqs_len %>% sd %>% round(2)
-
-  msg <- paste0("MSG: Total number of unique OTUs identified ",tot_seqs,
-                "\n",
-                "MSG: With mean read length ", m,
-                " and standard deviation ", s)
-  cat(msg, sep = '\n')
-
-  r_data_dir <- "data"
   taxtab_fn <- paste0(r_data_dir, "/", "taxtab.rds")
 
   if(!file.exists(taxtab_fn)) {
 
-    msg <- paste0("MSG: Starting taxonomic annotation using ", ref_fasta %>% basename, " database")
-    cat(msg, sep = '\n')
-
-    #WARNING: slow step 5-10 minutes
     taxtab <- assignTaxonomy(seqtab_nochim,
                              refFasta = ref_fasta,
                              tryRC = TRUE,
@@ -45,9 +24,10 @@ do_taxa_ann <- function(seqtab_nochim, ref_fasta) {
   return(taxtab)
 }
 
-mk_tree <- function(seqtab_nochim, taxatab) {
+fit_tree <- function(seqtab_nochim,
+             taxatab,
+                     r_data_dir = "data") {
 
-  r_data_dir <- "data"
   alignment_fn <- paste0(r_data_dir, "/", "alignment.rds")
 
   if(!file.exists(alignment_fn)) {
@@ -65,23 +45,11 @@ mk_tree <- function(seqtab_nochim, taxatab) {
 
   if(!file.exists(fitGTR_fn)) {
 
-    msg <- paste0("MSG: Building phylogenetic tree using NJ method")
-    cat(msg, sep = '\n')
+    phang.align <- phangorn::phyDat(as(alignment, "matrix"), type="DNA")
+    dm <- phangorn::dist.ml(phang.align)
+    treeNJ <- phangorn::NJ(dm) # Note, tip order != sequence order
 
-    phang.align <- phyDat(as(alignment, "matrix"), type="DNA")
-    dm <- dist.ml(phang.align)
-    treeNJ <- NJ(dm) # Note, tip order != sequence order
-
-    msg <- paste0("MSG: Starting pml fit")
-    cat(msg, sep = '\n')
-
-    fit <- pml(treeNJ, data = phang.align)
-
-    msg <- paste0("MSG: Starting pml optimisation ",
-                   "This is typically very slow step ",
-                   "Can be hours", sep = "\n")
-
-    cat(msg, sep = '\n')
+    fit <- phangorn::pml(treeNJ, data = phang.align)
 
     fitGTR <- update(fit, k=4, inv=0.2)
     #NOTE: this step is by far the longest step over an hour
@@ -94,13 +62,13 @@ mk_tree <- function(seqtab_nochim, taxatab) {
     # although note sure if topology has an effect on UniFrac i.e how taxa are related..
     #TODO? The only other thing that I should investigate is to try to filter branches at treeNJ stage before optimasing
     # this in theory should help ..?
-    fitGTR <- optim.pml(fitGTR,
-                        model="GTR",
-                        optInv=TRUE,
-                        optGamma=TRUE,
-                        #rearrangement = "stochastic",
-                        rearrangement = "NNI",
-                        control = pml.control(trace = 0))
+    fitGTR <- phangorn::optim.pml(fitGTR,
+                                  model="GTR",
+                                  optInv=TRUE,
+                                  optGamma=TRUE,
+                                  #rearrangement = "stochastic",
+                                  rearrangement = "NNI",
+                                  control = phangorn::pml.control(trace = 0))
 
     saveRDS(object = fitGTR, file = fitGTR_fn)
 
@@ -108,7 +76,7 @@ mk_tree <- function(seqtab_nochim, taxatab) {
     fitGTR <- readRDS(fitGTR_fn)
   }
 
-  detach("package:phangorn", unload=TRUE)
+  #detach("package:phangorn", unload=TRUE)
 
   return(fitGTR)
 }
