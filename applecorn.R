@@ -5,11 +5,17 @@ origin <- dirname(prog)
 args <- commandArgs(trailingOnly = TRUE)
 
 if(length(args) == 0) {
+
+  config_fn <- "config.yml"
+  config_full_fn <- file.path(origin, config_fn)
+  file.copy(config_full_fn, config_fn)
+
   msg <- paste0("\n\n",
                 "USAGE: ",
                 base_prog,
                 " <CONFIG>",
                 "\n\n")
+
   stop(msg)
 }
 
@@ -37,17 +43,15 @@ report_out <- gsub(".Rmd", ".html", report_fn)
 report_full_out <- file.path(origin, report_out)
 file.copy(report_full_out, report_out)
 
-params <- list(origin = origin)
-
+multiple <- FALSE
 if(length(raw_data) > 1) {
   multiple <- TRUE
 }
 
-seqtab_nochim <- NULL
+seqtabs <- c()
+dada <- NULL
 
 if(multiple) {
-
-  seqtabs <- c()
 
   for(i in 1:length(raw_data)) {
 
@@ -75,10 +79,11 @@ if(multiple) {
 
 }
 
-if(is.null(seqtab_nochim)) {
+seqtab_nochim <- NULL
+
+if(!is.null(seqtab_nochim) & length(seqtabs) > 1) {
   seqtab_nochim <- mergeSequenceTables(seqtabs)
-}
-else {
+} else {
   dada <- get_otus(raw_data,
                    suffix = config$suffix,
                    split = config$split,
@@ -101,7 +106,7 @@ taxtab <- do_taxa_ann(seqtab_nochim,
                       r_data_dir)
 
 fitGTR <- fit_tree(seqtab_nochim,
-		           taxatab,
+                   taxatab,
                    r_data_dir = r_data_dir)
 
 ps <- mk_phyloseq(taxtab,
@@ -110,6 +115,11 @@ ps <- mk_phyloseq(taxtab,
                   metadata,
                   r_data_dir = r_data_dir)
 
-rmarkdown::render(input = report_full_fn,
-                  params = params)
+opts <- list(origin = origin,
+             dada = dada,
+             taxtab = taxtab,
+             ps = ps)
+
+rmarkdown::render(input = report_fn,
+                  params = opts)
 

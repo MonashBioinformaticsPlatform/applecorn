@@ -10,8 +10,11 @@ output:
     number_sections: false
     theme: sandstone
     highlight: espresso
--params:
--  origin: "."
+params:
+  origin: "."
+  dada: NA
+  taxtab: NA
+  ps: NA
 ---
 
 ```{r setup, include=FALSE}
@@ -20,21 +23,20 @@ knitr::opts_chunk$set(echo = TRUE,
                       warning = FALSE)
 ```
 
-## Initiation
-
-Below is a reflection of the modular setup of the analysis. The module names
-reflect the type of analysis / data manipulation that happens at that stage.
-
-```{r cache=FALSE, include = F}
-
-libs <- list.files(file.path(params$origin, "R"), full.names = TRUE)
-lapply(libs, knitr::read_chunk)
-```
-
-Loading required libraries for the whole analysis
-
 ```{r libraries}
 ```
+
+## High level overview of typical amplicon data analysis
+
+- FASTQ quality filtering (maybe will need to demultiplex before that)
+- primers removal: cutadapt or "naive" length(primer) cut
+- merging R1 and R2 reads into single targeted fragment
+- Dereplication - collapsing identical sequences
+- OTUs/ASVs picking (operational taxonomical unit / amplicon sequence variant)
+- OTUs/ASVs annotation
+- explorative analysis - alpha/beta diversities, various ordinations plots and taxonomic barplot, all to see what the data looks like and if it fit the biology
+- differential taxa occurrance
+- More? PICRUSt, build your own linear model
 
 ## Initial processing, DADA2 + phyloseq
 
@@ -44,118 +46,23 @@ collapsed. Usually these steps collectivelly called denoising the data.
 
 ### DADA2
 
-Initial step of getting denoised sequences table
+```{r echo = T}
+dada2 <- params$dada
+seqtab <- dada2[["seqtab"]]
+seqtab_nochim <- dada2[["seqtab_nochim"]]
+chim_rate <- dada2[["chim_rate"]]
+info <- dada2[["info"]]
 
-```{r get_seqtab, echo = F}
+seq_info <- seqtab %>% dim
+seq_nochim_info <- seqtab_nochim %>% dim
 ```
 
-Checking that data is okay, typically expect very low chimeric rate
+Total number of samples is `r seq_info[1]` with total number of unique ASVs called is `r seq_info[2]`. After removal of chimeric reads, total number of unique ASVs is `r seq_nochim_info[2]`. Chimeric rate is `r chim_rate`
 
-```{r sanity_check1.1}
+### Denoising information
+
+```{r, rows.print = 20}
+info %>% arrange(-nonchim)
 ```
 
-Per sample break down of total number of denoised reads. This is the library size per sample
 
-```{r lib_size_info1}
-```
-
-### Donig taxonomy assignment
-
-Assigning using green genes classifier
-
-```{r taxonomy_assignment}
-```
-
-### Generating phyloseq object
-
-```{r metadata}
-```
-
-phyloseq object
-
-```{r phyloseq_obj}
-```
-
-### Phylogeny tree
-
-Plotting phylogeny tree to have a look how our ASVs behaving. This should be a routine step essentially at the start of any analysis. In this case we can see that there is one particular ASV that evidently doesn't fit the tree all that well. We should filter it out. This is particular important for downstream UniFrac analysis, since distance is calculated based on phylogeny as well as sequence similarity.
-
-This is how the phylogenic tree looks like after filtering "an odd ball out"
-
-```{r phylo_tree}
-```
-
-Best practice as well would be BLAST that (those if multiple found) sequence to make sure it doesn't belong to your analysis. In this case this sequences BLASTed against mouse genome.
-
-```{r phylo_tree_filt}
-```
-
-## Rarefaction curve
-
-```{r, rare_curve1, warning=F}
-```
-
-```{r, rare_curve2, warning=F}
-```
-
-## Alpha diversity
-
-Plot alpha diversity after rarefied to minimum depth
-
-```{r, alpha1, fig.width = 10, fig.height=6, warning=F}
-```
-
-## Ordination
-
-```{r ordination_init, warning=FALSE}
-```
-
-### Presence and absence
-
-```{r uw_unifrac_plot}
-```
-
-### Abundance based
-
-It is good idea to compare Bray-Curtis dissimilarity distance with weighted UniFrac, since UniFrac takes phylogenetic relationship into consideration. The plot should resemble the same overall shape of the data. If the two plots don't appear similar then it is possible that there are some sequence contaminats, that causing outlieers in the phylogenetic tree. Those need to be removed, before re-calculating weighted UniFrac distance.
-
-```{r bray_plt}
-```
-
-```{r w_unifrac_plot1}
-```
-
-```{r mk_ord_plots, echo = F}
-```
-
-## PERMANOVA
-
-This is to set out significance that we are seeing on the weighted UniFrac PCoA plot about
-
-```{r permanova_pairwise, warning = F}
-```
-
-## Taxonomy
-
-```{r main_df_setup}
-```
-
-```{r taxonomy}
-```
-
-- [barplot link](images/taxa.html)
-
-## Differential taxa occurance
-
-```{r deseq2}
-```
-
-```{r viz_volcano}
-```
-
-- [volcano plot link](images/volcano.html)
-
-```{r viz_ma}
-```
-
-- [ma plot link](images/ma.html)

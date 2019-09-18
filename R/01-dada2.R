@@ -240,8 +240,7 @@ get_otus <- function(fq_dir,
       saveRDS(object = seqtab, file = seqtab_fn)
       saveRDS(object = mergers, file = denoised_fn)
 
-    }
-    else {
+    } else {
 
       derepFs <- derepFastq(filtFs)
       names(derepFs) <- sample_names
@@ -277,8 +276,7 @@ get_otus <- function(fq_dir,
       saveRDS(object = mergers, file = denoised_fn)
     }
 
-  }
-  else if(!file.exists(seqtab_fn) & !paired) {
+  } else if(!file.exists(seqtab_fn) & !paired) {
 
     if(large) {
       stop("MSG: Not implemented")
@@ -324,6 +322,7 @@ get_otus <- function(fq_dir,
       dadaFs <- readRDS(dada_forward_fn)
       dadaRs <- readRDS(dada_reverse_fn)
       mergers <- readRDS(denoised_fn)
+      seqtab <- readRDS(seqtab_fn)
     }
     else {
       dadaFs <- readRDS(dada_forward_fn)
@@ -406,6 +405,7 @@ get_otus <- function(fq_dir,
   #df_info %>% arrange(-nonchim) %>% knitr::kable()
 
   return(list("info" = df_info,
+              "seqtab" = seqtab,
               "seqtab_nochim" = seqtab_nochim,
               "chim_rate" = chimeras_rate))
 }
