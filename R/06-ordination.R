@@ -28,10 +28,10 @@ mk_ordination <- function(ps_filt, dist = "wunifrac") {
                          #shape = "cage",
                          axes=1:2) +
                           geom_point(size = 4) +
-                          geom_text(aes(label = sample_id),
-                                    hjust = 1.3,
-                                    angle = -15,
-                                    size = 3) +
+                          #geom_text(aes(label = sample_id),
+                          #          hjust = 1.3,
+                          #          angle = -15,
+                          #          size = 3) +
                           ggtitle(dist)
                           #scale_color_manual(values = c("#94641F", "#C5944E", "#008000", "#7CFC00"))# +
 
