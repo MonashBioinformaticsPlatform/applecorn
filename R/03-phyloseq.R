@@ -26,6 +26,7 @@ mk_phyloseq <- function(taxtab,
     save(ps, file = ps_fn_rdata)
   } else {
     load(ps_fn_rdata)
+    ps <- readRDS(ps_fn_rds)
   }
 
   return(ps)

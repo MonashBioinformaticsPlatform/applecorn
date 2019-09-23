@@ -1,7 +1,7 @@
 
 # ---- alpha1 ----
 
-mk_alpha <- function(ps_filt) {
+mk_alpha <- function(ps_filt, r_data_dir) {
 
   rarefy_depth <- ps_filt %>% sample_sums %>% min
 
@@ -12,7 +12,6 @@ mk_alpha <- function(ps_filt) {
 
   ps_filt_rarefied <- prune_taxa(taxa_sums(ps_filt_rarefied) > 0, ps_filt_rarefied)
 
-  r_data_dir <- "data"
   ps_filt_rarefied_fn <- paste0(r_data_dir, "/", "ps_filt_rarefied.RData")
 
   if(!file.exists(ps_filt_rarefied_fn)) {
