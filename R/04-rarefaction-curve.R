@@ -10,8 +10,9 @@ est_rare_richness <- function(ps_dat, measures, depth) {
 
   ps_dat_filt <- prune_samples(sample_sums(ps_dat) >= depth, ps_dat)
 
-  rarified_ps_dat <- rarefy_even_depth(ps_dat_filt,
-                                       depth,
+  rarified_ps_dat <- rarefy_even_depth(physeq = ps_dat_filt,
+                                       sample.size = depth,
+                                       replace = FALSE,
                                        verbose = FALSE)
 
   alpha_diversity <- estimate_richness(rarified_ps_dat, measures = measures)
@@ -90,13 +91,22 @@ do_rare_curve <- function(df_info, ps_filt) {
   d_max <- df_info %>% dplyr::select(nonchim) %>% max
   d_min <- df_info %>% dplyr::select(nonchim) %>% min
 
-  #sampling_sizes <- c(0.001, 0.01, 1, 10, 15, 20, 25, 30) * 1000
   #depths <- rep(sampling_sizes, each = 10)
 
-  sizes <- mk_range(d_min, d_max)
+  sizes <- c(0.001, 0.01, 1, 10, 15, 20, 25, 30) * 1000
+
+  local_max <- sizes[length(sizes)]
+  while(local_max < d_max) {
+    k <- 10000
+    local_max <- local_max + k
+    sizes <- c(sizes, local_max)
+  }
+
+  #sizes <- mk_range(d_min, d_max)
 
   n_reps <- 10
   depths <- rep(sizes, each = n_reps)
+  print(depths)
 
   rare_curve <- mk_rare_curves(ps_filt,
                                c('Observed', 'Shannon'),
