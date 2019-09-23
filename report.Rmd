@@ -15,9 +15,13 @@ params:
   dada: NA
   taxtab: NA
   ps: NA
+  tree: NA
+  tree_filt: NA
+  alpha: NA
+  rare_curve: NA
 ---
-
 ```{r setup, include=FALSE}
+
 knitr::opts_chunk$set(echo = TRUE,
                       message = FALSE,
                       warning = FALSE)
@@ -61,8 +65,28 @@ Total number of samples is `r seq_info[1]` with total number of unique ASVs call
 
 ### Denoising information
 
-```{r, rows.print = 20}
+```{r rows.print = 20}
 info %>% arrange(-nonchim)
 ```
 
+### Phylogenetic trees
 
+```{r}
+tree[["tree"]]
+```
+
+```{r}
+tree_filt[["tree"]]
+```
+
+### Alpha diversity
+
+```{r}
+alpha[["plot"]]
+```
+
+### Rarefaction curve
+
+```{r}
+rare_curve
+```

@@ -115,10 +115,25 @@ ps <- mk_phyloseq(taxtab,
                   metadata,
                   r_data_dir = r_data_dir)
 
+tree <- mk_tree(ps, plt_title = "Raw tree")
+ps_filt <- filt_phyloseq(ps, tree[["mean"]], tree[["sd"]])
+tree_filt <- mk_tree(ps_filt[["ps_filt"]], plt_title = "Filtered tree")
+alpha <- mk_alpha(ps_filt[["ps_filt"]], r_data_dir)
+rare_curve <- do_rare_curve(dada[["info"]], ps_filt[["ps_filt"]])
+
+#ps_filt <- NULL
+#tree_filt <- NULL
+#alpha <- NULL
+#rare_curve <- NULL
+
 opts <- list(origin = origin,
              dada = dada,
              taxtab = taxtab,
-             ps = ps)
+             ps = list("raw" = ps, "filt" = ps_filt),
+	     tree = tree,
+	     tree_filt = tree_filt,
+	     alpha = alpha,
+	     rare_curve = rare_curve)
 
 rmarkdown::render(input = report_fn,
                   params = opts)
