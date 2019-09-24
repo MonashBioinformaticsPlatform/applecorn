@@ -3,6 +3,7 @@
 raw_data:
   - "raw-data"
   - "raw-data2"
+prefix: "day20"
 metadata: "metadata.tsv"
 taxa_db: "classifier.fa"
 output_dir: "applecorn-run"
@@ -10,10 +11,10 @@ report_fn: "report.Rmd"
 
 # fine turning
 rarefy: false
-kraken_filt: false
-kraken_contams_fn: "contams.txt"
-# other
-debug: false
+mk_plots: false
+test_var: "treat"
+dist_binary: "unifrac" #jaccard
+dist_abund: "wunifrac" #bray
 
 #asv detection
 suffix: "_R1,_R2"
@@ -30,3 +31,8 @@ max_ee:
   - 1
 r_data_dir: "data"
 filt_path: "filtered"
+
+# other
+debug: false
+kraken_filt: false
+kraken_contams_fn: "contams.txt"

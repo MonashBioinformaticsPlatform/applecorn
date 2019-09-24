@@ -8,7 +8,12 @@ if(length(args) == 0) {
 
   config_fn <- "config.yml"
   config_full_fn <- file.path(origin, config_fn)
-  file.copy(config_full_fn, config_fn)
+
+  config_fn <- gsub(".yml", "_example.yml", config_fn)
+
+  if(!file.exists(config_fn)) {
+    file.copy(config_full_fn, config_fn)
+  }
 
   msg <- paste0("\n\n",
                 "USAGE: ",
@@ -19,7 +24,7 @@ if(length(args) == 0) {
   stop(msg)
 }
 
-libs <- list.files(file.path(origin, "R"), full.names = TRUE)
+libs <- list.files(file.path(origin, "R"), pattern = ".R", full.names = TRUE)
 
 config_fn <- normalizePath(args[1])
 config <- yaml::read_yaml(config_fn)
@@ -33,15 +38,13 @@ lapply(libs, source)
 
 raw_data <- config$raw_data
 r_data_dir <- config$r_data_dir
+image_dir <- config$image_dir
 filt_path <- config$filt_path
 
-report_fn <- config$report_fn
+report_res <- config$report_fn
+report_fn <- "report.Rmd"
 report_full_fn <- file.path(origin, report_fn)
-file.copy(report_full_fn, report_fn)
-
-report_out <- gsub(".Rmd", ".html", report_fn)
-report_full_out <- file.path(origin, report_out)
-file.copy(report_full_out, report_out)
+file.copy(report_full_fn, report_res)
 
 multiple <- FALSE
 if(length(raw_data) > 1) {
@@ -118,23 +121,69 @@ ps <- mk_phyloseq(taxtab,
 tree <- mk_tree(ps, plt_title = "Raw tree")
 ps_filt <- filt_phyloseq(ps, tree[["mean"]], tree[["sd"]])
 tree_filt <- mk_tree(ps_filt[["ps_filt"]], plt_title = "Filtered tree")
-alpha <- mk_alpha(ps_filt[["ps_filt"]], r_data_dir)
-rare_curve <- do_rare_curve(dada[["info"]], ps_filt[["ps_filt"]])
 
-#ps_filt <- NULL
-#tree_filt <- NULL
-#alpha <- NULL
-#rare_curve <- NULL
+test_var <- config$test_var
+
+plts <- list()
+
+alpha <- mk_alpha(ps_filt[["ps_filt"]],
+                  r_data_dir,
+                  color = test_var)
+
+alpha_fn <- paste0(image_dir, "/alpha.jpg")
+plts[[alpha_fn]] <- alpha[["plot"]]
+
+rare_curve <- NULL
+
+if(config$rarefy) {
+  rare_curve <- do_rare_curve(dada[["info"]], ps_filt[["ps_filt"]])
+}
+
+dist_binary <- config$dist_binary
+dist_abund <- config$dist_abund
+
+plt_binary <- mk_ordination(ps_filt[["ps_filt"]], dist_binary)
+plt_binary_fn <- paste0(image_dir, "/", dist_binary, ".jpg")
+plts[[plt_binary_fn]] <- plt_binary
+
+plt_abund <- mk_ordination(ps_filt[["ps_filt"]], dist_abund)
+plt_abund_fn <- paste0(image_dir, "/", dist_abund, ".jpg")
+plts[[plt_abund_fn]] <- plt_abund
+
+permanova <- permanova_pairwise(ps_filt[["ps_filt"]], test_var, dist_abund)
+
+permanova_fn <- paste0(r_data_dir, "/", "permanova.csv")
+permanova %>% write_tsv(permanova_fn)
+
+main_df <- mk_main_df(ps_filt[["ps_filt"]], r_data_dir)
 
 opts <- list(origin = origin,
              dada = dada,
              taxtab = taxtab,
              ps = list("raw" = ps, "filt" = ps_filt),
-	     tree = tree,
-	     tree_filt = tree_filt,
-	     alpha = alpha,
-	     rare_curve = rare_curve)
+	         tree = tree,
+	         tree_filt = tree_filt,
+	         alpha = alpha,
+	         rare_curve = rare_curve,
+             permanova = permanova,
+             plt_binary = plt_binary,
+             plt_abund = plt_abund)
 
-rmarkdown::render(input = report_fn,
+
+
+
+if(config$mk_plots) {
+
+  lapply(ord_plts %>% names, function(p) {ggsave(plot = ord_plts[[p]],
+                                                 filename = p,
+                                                 device = "jpg",
+                                                 height = 4.4,
+                                                 width = 6.05,
+                                                 scale = 1,
+                                                 dpi = 600,
+                                                 units = "in")})
+}
+
+rmarkdown::render(input = report_res,
                   params = opts)
 

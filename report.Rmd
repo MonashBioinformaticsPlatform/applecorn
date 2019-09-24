@@ -19,6 +19,9 @@ params:
   tree_filt: NA
   alpha: NA
   rare_curve: NA
+  permanova: NA
+  plt_binary: NA
+  plt_abund: NA
 ---
 ```{r setup, include=FALSE}
 
@@ -89,4 +92,11 @@ alpha[["plot"]]
 
 ```{r}
 rare_curve
+```
+
+### Ordinations
+
+```{r}
+plt_binary
+plt_abund
 ```
