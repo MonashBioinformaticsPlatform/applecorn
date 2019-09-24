@@ -1,28 +1,19 @@
 
-# user input
+# general user input
 raw_data:
   - "raw-data"
   - "raw-data2"
-prefix: "day20"
 metadata: "metadata.tsv"
 taxa_db: "classifier.fa"
 output_dir: "applecorn-run"
 report_fn: "report.Rmd"
-
-# fine turning
 rarefy: false
 mk_plots: false
 test_var: "treat"
+r_data_dir: "data"
+filt_path: "filtered"
 
-# ordinations
-dist_binary: "unifrac" #jaccard
-dist_abund: "wunifrac" #bray
-
-# taxonomic barplot
-legend: "none" # bottom, left, right
-n_taxa: 12 # N most abundance or NULL to plot all taxa
-
-#asv detection
+# asv detection
 suffix: "_R1,_R2"
 split: "_L"
 extn: "fastq.gz"
@@ -35,9 +26,17 @@ trunc_len:
 max_ee:
   - 1
   - 1
-r_data_dir: "data"
-filt_path: "filtered"
 
+# phyloseq
+ps_filt: true
+
+# ordinations
+dist_binary: "unifrac" #jaccard
+dist_abund: "wunifrac" #bray
+
+# taxonomic barplot
+legend: "none" # bottom, left, right
+n_taxa: 12 # N most abundance or NULL to plot all taxa
 # other
 debug: false
 kraken_filt: false

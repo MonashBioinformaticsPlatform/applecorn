@@ -122,11 +122,17 @@ tree <- mk_tree(ps, plt_title = "Raw tree")
 ps_filt <- filt_phyloseq(ps, tree[["mean"]], tree[["sd"]])
 tree_filt <- mk_tree(ps_filt[["ps_filt"]], plt_title = "Filtered tree")
 
+main_ps <- ps
+
+if(config$ps_filt) {
+  main_ps <- ps_filt[["ps_filt"]]
+}
+
 test_var <- config$test_var
 
 plts <- list()
 
-alpha <- mk_alpha(ps_filt[["ps_filt"]],
+alpha <- mk_alpha(main_ps,
                   r_data_dir,
                   color = test_var)
 
@@ -142,20 +148,20 @@ if(config$rarefy) {
 dist_binary <- config$dist_binary
 dist_abund <- config$dist_abund
 
-plt_binary <- mk_ordination(ps_filt[["ps_filt"]], dist_binary)
+plt_binary <- mk_ordination(main_ps, dist_binary)
 plt_binary_fn <- paste0(image_dir, "/", dist_binary, ".jpg")
 plts[[plt_binary_fn]] <- plt_binary
 
-plt_abund <- mk_ordination(ps_filt[["ps_filt"]], dist_abund)
+plt_abund <- mk_ordination(main_ps, dist_abund)
 plt_abund_fn <- paste0(image_dir, "/", dist_abund, ".jpg")
 plts[[plt_abund_fn]] <- plt_abund
 
-permanova <- permanova_pairwise(ps_filt[["ps_filt"]], test_var, dist_abund)
+permanova <- permanova_pairwise(main_ps, test_var, dist_abund)
 
 permanova_fn <- paste0(r_data_dir, "/", "permanova.csv")
 permanova %>% write_tsv(permanova_fn)
 
-main_df <- mk_main_df(ps_filt[["ps_filt"]], r_data_dir)
+main_df <- mk_main_df(main_ps, r_data_dir)
 
 n_taxa <- config$n_taxa %>% as.numeric
 legend <- config$legend
@@ -172,7 +178,7 @@ plts[[barplt_fn]] <- barplt
 opts <- list(origin = origin,
              dada = dada,
              taxtab = taxtab,
-             ps = list("raw" = ps, "filt" = ps_filt),
+             ps = list("raw" = ps, "filt" = main_ps),
 	         tree = tree,
 	         tree_filt = tree_filt,
 	         alpha = alpha,
