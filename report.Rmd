@@ -11,6 +11,7 @@ output:
     theme: sandstone
     highlight: espresso
 params:
+  images_dir: "images"
   origin: "."
   dada: NA
   taxtab: NA
@@ -22,6 +23,8 @@ params:
   permanova: NA
   plt_binary: NA
   plt_abund: NA
+  dist_binary: NA
+  dist_abund: NA
   barplt: NA
 ---
 ```{r setup, include=FALSE}
@@ -89,6 +92,8 @@ params$tree_filt[["tree"]]
 params$alpha[["plot"]]
 ```
 
+- [alpha plot](`r params$images_dir`/alpha.jpg)
+
 ## Rarefaction curve
 
 ```{r}
@@ -98,9 +103,19 @@ params$rare_curve
 ## Ordinations
 
 ```{r}
-params$plt_binary
-params$plt_abund
+params$plt_binary[["plotly"]]
+params$plt_abund[["plotly"]]
 ```
+
+#### Static plots
+
+- [presence and absence plot](`r params$images_dir`/`r params$dist_binary`.jpg)
+- [abundance](`r params$images_dir`/`r params$dist_abund`.jpg)
+
+#### Interactive plots
+
+- [presence and absence plot](`r params$images_dir`/`r params$dist_binary`.html)
+- [abundance](`r params$images_dir`/`r params$dist_abund`.html)
 
 ## Permanova
 
@@ -111,5 +126,13 @@ params$permanova
 ## Taxonomy
 
 ```{r}
-params$barplt
+params$barplt[["plotly"]]
 ```
+
+#### Static plots
+
+- [barplot](`r params$images_dir`/barplot.jpg)
+
+#### Interactive plots
+
+- [barplot](`r params$images_dir`/barplot.html)

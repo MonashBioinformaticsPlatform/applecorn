@@ -6,9 +6,11 @@ raw_data:
 metadata: "metadata.tsv"
 taxa_db: "classifier.fa"
 output_dir: "applecorn-run"
+images_dir: "images"
 report_fn: "report.Rmd"
 rarefy: false
 mk_plots: false
+mk_plots_ly: false
 test_var: "treat"
 r_data_dir: "data"
 filt_path: "filtered"
@@ -37,6 +39,8 @@ dist_abund: "wunifrac" #bray
 # taxonomic barplot
 legend: "none" # bottom, left, right
 n_taxa: 12 # N most abundance or NULL to plot all taxa
+ncol: null # this will be passed to facet_wrap(ncol = ncol)
+
 # other
 debug: false
 kraken_filt: false

@@ -28,9 +28,13 @@ mk_ordination <- function(ps_filt, dist = "wunifrac", test_var = "treat") {
                          #shape = "cage",
                          axes=1:2) +
                           geom_point(aes(label = sample_id)) +
+                          stat_ellipse(geom = "polygon", type="norm", alpha=0.1, aes_string(fill=test_var)) +
                           ggtitle(dist)
                           #scale_color_manual(values = c("#94641F", "#C5944E", "#008000", "#7CFC00"))# +
 
-  return(plt)
+  plt_ly <- plt %>% ggplotly
+
+  return(list("plot" = plt,
+              "plotly" = plt_ly))
 
 }

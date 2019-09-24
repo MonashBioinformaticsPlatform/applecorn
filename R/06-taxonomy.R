@@ -5,6 +5,7 @@ mk_barplt <- function(main_df,
                       r_data_dir,
                       sample_order = NULL,
                       n_taxa = 12,
+                      ncol = NULL,
                       legend = "right",
                       test_var = "treat") {
 
@@ -46,7 +47,7 @@ mk_barplt <- function(main_df,
   p_taxa <- df_filt %>%
               ggplot(aes(sample, cpm, fill = name)) +
                 geom_bar(stat = "identity") +
-                facet_wrap(f, scales = "free_x") +
+                facet_wrap(f, scales = "free_x", ncol = ncol) +
                 ggtitle(paste0(n_taxa, " most abundant taxa")) +
                 theme_bw() +
                 theme(axis.text.x = element_text(angle = 45, hjust = 1),
@@ -59,6 +60,9 @@ mk_barplt <- function(main_df,
     p_taxa <- p_taxa + scale_fill_brewer(palette="Set3")
   }
 
-  return(p_taxa)
+  p_taxa_ly <- p_taxa %>% ggplotly
+
+  return(list("plot" = p_taxa,
+              "plotly" = p_taxa_ly))
 
 }
