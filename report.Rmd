@@ -52,7 +52,7 @@ Initial processing of amplicon data done using DADA2 and phyloseq packages. Brie
 quality filtered and trimmed, R1 and R2 reads overlaped to form a longer, merged reads and PCR duplicates
 collapsed. Usually these steps collectivelly called denoising the data.
 
-### DADA2
+## DADA2
 
 ```{r echo = T}
 dada2 <- params$dada
@@ -67,13 +67,13 @@ seq_nochim_info <- seqtab_nochim %>% dim
 
 Total number of samples is `r seq_info[1]` with total number of unique ASVs called is `r seq_info[2]`. After removal of chimeric reads, total number of unique ASVs is `r seq_nochim_info[2]`. Chimeric rate is `r chim_rate`
 
-### Denoising information
+## Denoising information
 
 ```{r rows.print = 20}
 info %>% arrange(-nonchim)
 ```
 
-### Phylogenetic trees
+## Phylogenetic trees
 
 ```{r}
 params$tree[["tree"]]
@@ -83,26 +83,32 @@ params$tree[["tree"]]
 params$tree_filt[["tree"]]
 ```
 
-### Alpha diversity
+## Alpha diversity
 
 ```{r}
 params$alpha[["plot"]]
 ```
 
-### Rarefaction curve
+## Rarefaction curve
 
 ```{r}
 params$rare_curve
 ```
 
-### Ordinations
+## Ordinations
 
 ```{r}
 params$plt_binary
 params$plt_abund
 ```
 
-### Taxonomy
+## Permanova
+
+```{r}
+params$permanova
+```
+
+## Taxonomy
 
 ```{r}
 params$barplt
