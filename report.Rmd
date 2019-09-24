@@ -76,34 +76,34 @@ info %>% arrange(-nonchim)
 ### Phylogenetic trees
 
 ```{r}
-tree[["tree"]]
+params$tree[["tree"]]
 ```
 
 ```{r}
-tree_filt[["tree"]]
+params$tree_filt[["tree"]]
 ```
 
 ### Alpha diversity
 
 ```{r}
-alpha[["plot"]]
+params$alpha[["plot"]]
 ```
 
 ### Rarefaction curve
 
 ```{r}
-rare_curve
+params$rare_curve
 ```
 
 ### Ordinations
 
 ```{r}
-plt_binary
-plt_abund
+params$plt_binary
+params$plt_abund
 ```
 
 ### Taxonomy
 
 ```{r}
-barplt
+params$barplt
 ```
