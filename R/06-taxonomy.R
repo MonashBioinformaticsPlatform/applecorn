@@ -37,7 +37,9 @@ mk_barplt <- function(main_df,
   }
 
   df_filt <- df_filt %>%
-               dplyr::filter(name %in% top_taxa)
+               dplyr::filter(name %in% top_taxa) %>%
+               separate(name, c('phylum', 'class', 'order', 'family', 'genus', 'md5'), sep = ";") %>%
+               unite(name, c('phylum', 'class', 'order', 'family', 'genus', 'md5'), sep = "\n")
 
   f <- as.formula(paste("~", test_var))
 
