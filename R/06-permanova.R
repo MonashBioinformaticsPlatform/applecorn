@@ -13,9 +13,7 @@ permanova_pairwise <- function(ps, test_var, dist_type) {
 
   samdf <- ps %>%
             sample_data() %>%
-            as.data.frame() %>%
-            rownames_to_column(var = "sample") %>%
-            as_tibble()
+            as.data.frame()
 
   set.seed(15653)
 
@@ -32,10 +30,7 @@ permanova_pairwise <- function(ps, test_var, dist_type) {
     #TODO do a check that test_var actually exists in the samdf
     samdf_pair <- samdf %>% dplyr::filter(get(test_var) %in% co[,i])
 
-    filt <- samdf_pair %>%
-              select(sample) %>%
-              unlist %>%
-              unname()
+    filt <- samdf_pair$sample
 
     d <- phyloseq::distance(ps, method = dist_type)
     d_pair <- d %>% as.matrix()

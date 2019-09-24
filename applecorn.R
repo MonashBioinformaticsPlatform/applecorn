@@ -148,11 +148,17 @@ if(config$rarefy) {
 dist_binary <- config$dist_binary
 dist_abund <- config$dist_abund
 
-plt_binary <- mk_ordination(main_ps, dist_binary)
+plt_binary <- mk_ordination(main_ps,
+                            dist = dist_binary,
+                            test_var = test_var)
+
 plt_binary_fn <- paste0(image_dir, "/", dist_binary, ".jpg")
 plts[[plt_binary_fn]] <- plt_binary
 
-plt_abund <- mk_ordination(main_ps, dist_abund)
+plt_abund <- mk_ordination(main_ps,
+                           dist = dist_abund,
+                           test_var = test_var)
+
 plt_abund_fn <- paste0(image_dir, "/", dist_abund, ".jpg")
 plts[[plt_abund_fn]] <- plt_abund
 

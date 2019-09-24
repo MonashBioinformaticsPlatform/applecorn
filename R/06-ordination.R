@@ -1,6 +1,6 @@
 # ---- ordination_init ----
 
-mk_ordination <- function(ps_filt, dist = "wunifrac") {
+mk_ordination <- function(ps_filt, dist = "wunifrac", test_var = "treat") {
 
   #options :
   # - wunifrac
@@ -24,7 +24,7 @@ mk_ordination <- function(ps_filt, dist = "wunifrac") {
   plt <- plot_ordination(pslog_filt,
                          ord_log,
                          type = "samples",
-                         color = "treat",
+                         color = test_var,
                          #shape = "cage",
                          axes=1:2) +
                           geom_point(size = 4) +
