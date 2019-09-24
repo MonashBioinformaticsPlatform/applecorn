@@ -1,7 +1,7 @@
 
 # ---- alpha1 ----
 
-mk_alpha <- function(ps_filt, r_data_dir) {
+mk_alpha <- function(ps_filt, r_data_dir, color = NULL) {
 
   rarefy_depth <- ps_filt %>% sample_sums %>% min
 
@@ -24,8 +24,7 @@ mk_alpha <- function(ps_filt, r_data_dir) {
                             x="sample",
                             #measures=c("Observed", "Chao1", "Shannon", "Simpson"),
                             measures=c("Observed", "Chao1", "Shannon"),
-                            #color="treat")
-                            color=NULL)
+                            color=color)
 
   return(list("ps_filt_rarefied" = ps_filt_rarefied,
               "plot" = p_alpha1,
