@@ -54,7 +54,7 @@ mk_barplt <- function(main_df,
                       axis.title.y=element_blank())
 
   if(n_taxa <= 12) {
-    p_taxa + scale_fill_brewer(palette="Set3")
+    p_taxa <- p_taxa + scale_fill_brewer(palette="Set3")
   }
 
   return(p_taxa)
