@@ -13,8 +13,14 @@ report_fn: "report.Rmd"
 rarefy: false
 mk_plots: false
 test_var: "treat"
+
+# ordinations
 dist_binary: "unifrac" #jaccard
 dist_abund: "wunifrac" #bray
+
+# taxonomic barplot
+legend: "none" # bottom, left, right
+n_taxa: 12 # N most abundance or NULL to plot all taxa
 
 #asv detection
 suffix: "_R1,_R2"

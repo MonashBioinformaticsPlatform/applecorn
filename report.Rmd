@@ -22,6 +22,7 @@ params:
   permanova: NA
   plt_binary: NA
   plt_abund: NA
+  barplt: NA
 ---
 ```{r setup, include=FALSE}
 
@@ -99,4 +100,10 @@ rare_curve
 ```{r}
 plt_binary
 plt_abund
+```
+
+### Taxonomy
+
+```{r}
+barplt
 ```

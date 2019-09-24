@@ -157,6 +157,18 @@ permanova %>% write_tsv(permanova_fn)
 
 main_df <- mk_main_df(ps_filt[["ps_filt"]], r_data_dir)
 
+n_taxa <- config$n_taxa %>% as.numeric
+legend <- config$legend
+
+barplt <- mk_barplt(main_df,
+                    r_data_dir,
+                    n_taxa = n_taxa,
+                    legend = legend,
+                    test_var = test_var)
+
+barplt_fn <- paste0(image_dir, "/", "barplot.jpg")
+plts[[barplt_fn]] <- barplt
+
 opts <- list(origin = origin,
              dada = dada,
              taxtab = taxtab,
@@ -167,10 +179,8 @@ opts <- list(origin = origin,
 	         rare_curve = rare_curve,
              permanova = permanova,
              plt_binary = plt_binary,
-             plt_abund = plt_abund)
-
-
-
+             plt_abund = plt_abund,
+             barplt = barplt)
 
 if(config$mk_plots) {
 
