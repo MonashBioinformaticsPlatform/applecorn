@@ -24,8 +24,8 @@ trunc_len:
   - 237
   - 202
 max_ee:
-  - 1
-  - 1
+  - 2
+  - 2
 
 # phyloseq
 ps_filt: true

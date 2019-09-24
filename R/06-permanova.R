@@ -30,7 +30,7 @@ permanova_pairwise <- function(ps, test_var, dist_type) {
     #TODO do a check that test_var actually exists in the samdf
     samdf_pair <- samdf %>% dplyr::filter(get(test_var) %in% co[,i])
 
-    filt <- samdf_pair$sample
+    filt <- samdf_pair$sample_id
 
     d <- phyloseq::distance(ps, method = dist_type)
     d_pair <- d %>% as.matrix()
