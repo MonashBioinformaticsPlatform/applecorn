@@ -51,6 +51,7 @@ filt_path <- config$filt_path
 report_res <- config$report_fn
 report_fn <- "report.Rmd"
 report_full_fn <- file.path(origin, report_fn)
+# Copying to existing destination files is skipped unless overwrite = TRUE
 file.copy(report_full_fn, report_res)
 
 multiple <- FALSE
