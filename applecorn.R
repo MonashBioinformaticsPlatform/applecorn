@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 prog <- unlist(strsplit(commandArgs()[4], split = "--file="))[2]
 base_prog <- basename(prog)
 origin <- dirname(prog)
@@ -151,7 +153,7 @@ plts[[alpha_fn]] <- alpha[["plot"]]
 rare_curve <- NULL
 
 if(config$rarefy) {
-  rare_curve <- do_rare_curve(dada[["info"]], ps_filt[["ps_filt"]])
+  rare_curve <- do_rare_curve(ps_filt[["ps_filt"]])
 }
 
 dist_binary <- config$dist_binary

@@ -61,52 +61,34 @@ mk_rare_curves <- function(ps_dat, measures, depths, parallel = TRUE) {
 
 mk_range <- function(d_min, d_max) {
 
-  n <- floor(d_max/d_min)
-  step <- floor(d_max/n)
-  range <- c()
-
   if(d_min > 1000) {
-    range <- c(range, 1000, d_min)
-  }
-  else {
-    range <- c(range, d_min)
+    d_min <- 1000
   }
 
-  while(TRUE) {
-    val <- range[length(range)]+step
-    if(val >= d_max) {
-      #range <- c(range, d_max)
-      break
-    }
-    range <- c(range, val)
-  }
+  #TODO assert(d_min >= 0)
+
+  #adjust binary search to d_min
+  d <- d_max-d_min
+  # binary search, worth case senario. I simply want to get even number of steps
+  n_steps <- floor(log2(d))
+  steps <- floor(d/n_steps)
+
+  range <- seq(d_min, d_max, steps)
 
   return(range)
 }
 
-do_rare_curve <- function(df_info, ps_filt) {
+do_rare_curve <- function(ps_filt, n_reps = 10) {
 
   set.seed(42)
 
-  d_max <- df_info %>% dplyr::select(nonchim) %>% max
-  d_min <- df_info %>% dplyr::select(nonchim) %>% min
+  d_max <- ps_filt %>% sample_sums %>% max
+  d_min <- ps_filt %>% sample_sums %>% min
 
   #depths <- rep(sampling_sizes, each = 10)
 
-  sizes <- c(0.001, 0.01, 1, 10, 15, 20, 25, 30) * 1000
-
-  local_max <- sizes[length(sizes)]
-  while(local_max < d_max) {
-    k <- 10000
-    local_max <- local_max + k
-    sizes <- c(sizes, local_max)
-  }
-
-  #sizes <- mk_range(d_min, d_max)
-
-  n_reps <- 10
+  sizes <- mk_range(d_min, d_max)
   depths <- rep(sizes, each = n_reps)
-  print(depths)
 
   rare_curve <- mk_rare_curves(ps_filt,
                                c('Observed', 'Shannon'),
