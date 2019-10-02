@@ -31,6 +31,8 @@ permanova_pairwise <- function(ps, test_var, dist_type) {
     samdf_pair <- samdf %>% dplyr::filter(get(test_var) %in% co[,i])
 
     filt <- samdf_pair$sample_id
+    # this is fix in case sample ids are numbers. laters of d_pair[filt, filt] does subsample correctly
+    filt <- filt %>% as.character
 
     d <- phyloseq::distance(ps, method = dist_type)
     d_pair <- d %>% as.matrix()

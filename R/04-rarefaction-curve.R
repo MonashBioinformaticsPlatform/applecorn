@@ -133,7 +133,7 @@ do_rare_curve <- function(ps_filt, n_reps = 10) {
                   scale_x_continuous(breaks = sizes,
                                      limits = c(min(sizes), max(sizes))) +
                   facet_wrap(~measure, scales = 'free_y') +
-                  ylab(paste("Alpha diversity, mean across", n_reps)) +
+                  ylab(paste0("Alpha diversity, mean across ", n_reps, " reps")) +
                   ggtitle("Rarefaction curves") +
                   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
