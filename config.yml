@@ -29,6 +29,8 @@ max_ee:
   - 2
   - 2
 
+# phylogenetic tree fit
+fit_tree: false
 # phyloseq
 ps_filt: true
 

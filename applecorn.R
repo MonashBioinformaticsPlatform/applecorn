@@ -38,6 +38,8 @@ if(debug) {
 }
 lapply(libs, source)
 
+conf_chk(config)
+
 raw_data <- config$raw_data
 r_data_dir <- config$r_data_dir
 images_dir <- config$images_dir
@@ -118,9 +120,16 @@ taxtab <- do_taxa_ann(seqtab_nochim,
                       classifier,
                       r_data_dir)
 
-fitGTR <- fit_tree(seqtab_nochim,
-                   taxatab,
-                   r_data_dir = r_data_dir)
+fitGTR <- NULL
+fit_tree <- config$fit_tree
+
+if(fit_tree) {
+
+  fitGTR <- fit_tree(seqtab_nochim,
+                     taxatab,
+                     r_data_dir = r_data_dir)
+
+}
 
 ps <- mk_phyloseq(taxtab,
                   seqtab_nochim,
@@ -220,7 +229,6 @@ opts <- list(origin = origin,
 
 if(config$mk_plots) {
 
-
   lapply(plts %>% names, function(p) {ggsave(plot = plts[[p]],
                                              filename = p,
                                              device = "jpg",
@@ -241,3 +249,4 @@ if(config$mk_plots_ly) {
 rmarkdown::render(input = report_res,
                   params = opts)
 
+sessionInfo()
