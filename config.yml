@@ -28,8 +28,14 @@ trunc_len:
 max_ee:
   - 2
   - 2
+dada_large: false # use to flag a large data set i.e very deep sequencing
 
 # phylogenetic tree fit
+# NOTE currently I only filter out outlier branches from ps object
+# i.e after building a phylogenetic tree I can look for branches that don't fit the tree
+# if I don't have the tree I can't really do any filtering.
+# This means fit_tree and ps_filt at this stage are the same and fit_tree is therefore redundant
+# but I'm using fit_tree elsewhere, so will keep it in for now
 fit_tree: false
 # phyloseq
 ps_filt: true

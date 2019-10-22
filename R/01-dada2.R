@@ -1,19 +1,16 @@
 # ---- get_seqtab ----
 
-get_otus <- function(fq_dir,
-                     suffix = "_R1,_R2",
-                     split = "_R",
-                     extn = "fastq.gz",
-                     trim_left = c(23, 23),
-                     trunc_len = c(245, 200),
-                     max_ee = c(2, 2),
-                     trunc_q = 2,
-                     r_data_dir = "data",
-                     filt_path = "filtered",
-                     large = FALSE,
-                     multithread = TRUE,
-                     omega_a = 1e-40,
-                     omega_c = 1e-40) {
+do_filt_n_trim <- function(fq_dir,
+                           suffix = "_R1,_R2",
+                           split = "_R",
+                           extn = "fastq.gz",
+                           trim_left = c(23, 23),
+                           trunc_len = c(245, 200),
+                           max_ee = c(2, 2),
+                           trunc_q = 2,
+                           r_data_dir = "data",
+                           filt_path = "filtered",
+                           multithread = TRUE) {
 
   #' Denoising fastq and OTU/ASV picking
   #'
@@ -36,14 +33,18 @@ get_otus <- function(fq_dir,
   r2 <- NULL
 
   if(length(chk) == 2) {
+
     paired = TRUE
     r2 <- chk[2]
-  }
-  else if(length(chk) > 2) {
+
+    msg <- paste0("MSG: Detected paired end data; ", paired, "\n")
+    cat(msg)
+
+  } else if(length(chk) > 2) {
     #TODO add more information to the error message
     stop("ERROR: Wrong suffix value")
-  }
-  else if(length(chk) <= 0) {
+
+  } else if(length(chk) <= 0) {
     stop("ERROR: Wrong suffix value")
   }
 
@@ -66,6 +67,9 @@ get_otus <- function(fq_dir,
 
   if(paired) {
 
+    msg <- paste0("MSG: Using these prefixes for sample detection - ", r1, " and ", r2, "\n")
+    cat(msg)
+
     fnFs <- fns[grepl(r1, fns)]
     fnRs <- fns[grepl(r2, fns)]
 
@@ -73,11 +77,19 @@ get_otus <- function(fq_dir,
     filtRs <- file.path(filt_path, basename(fnRs))
 
   } else {
+
+    msg <- paste0("MSG: Using this prefix for sample detection - ", r1, "\n")
+    cat(msg)
+
     fnFs <- fns[grepl(r1, fns)]
     filtFs <- file.path(filt_path, basename(fnFs))
   }
 
   sample_names <- sapply(strsplit(basename(filtFs), split), `[`, 1)
+
+  msg <- paste0("MSG: Detected these samples \n")
+  cat(msg)
+  print(sample_names)
 
   filt_n_trim <- list(compress = TRUE,
                       trimLeft = trim_left,
@@ -98,18 +110,33 @@ get_otus <- function(fq_dir,
                       OMP = TRUE,
                       verbose = TRUE)
 
+  msg <- paste0("MSG: Filtering and Trimming parameters going forward \n")
+  cat(msg)
+  print(filt_n_trim)
+
   trimed_dada2_fn = paste0(r_data_dir, "/", "trimed_dada2.rds")
   trimed_dada2 <- NULL
 
   if(!file.exists(trimed_dada2_fn)) {
 
+    msg <- paste0("MSG: Beginning filtering and trimming step \n")
+    cat(msg)
+
     threads <- 1
 
     if(multithread) {
+
       threads <- detectCores()
+
+      msg <- paste0("MSG: Detected multiple threads, number of threads going forward ", threads, "\n")
+      cat(msg)
     }
 
     if(paired) {
+
+      msg <- paste0("MSG: Filtering and trimming in paired end mode \n")
+      cat(msg)
+
       trimed_dada2 <- mcmapply(fastqPairedFilter,
                                mapply(c,
                                       fnFs,
@@ -122,8 +149,12 @@ get_otus <- function(fq_dir,
                                MoreArgs = filt_n_trim,
                                mc.cores = threads,
                                mc.silent = TRUE)
-    }
-    else {
+
+    } else {
+
+      msg <- paste0("MSG: Filtering and trimming in single end mode \n")
+      cat(msg)
+
       trimed_dada2 <- mcmapply(fastqFilter,
                                fnFs,
                                filtFs,
@@ -139,31 +170,43 @@ get_otus <- function(fq_dir,
     trimed_dada2 <- trimed_dada2 %>% t
     rownames(trimed_dada2) <- sample_names
 
+    msg <- paste0("MSG: Saving filtered and trimmed object \n")
+    cat(msg)
+
     saveRDS(object = trimed_dada2, file = trimed_dada2_fn)
 
-  }
-  else {
+  } else {
+
+    msg <- paste0("MSG: Detected existing ", trimed_dada2_fn, "object. Loading it in \n")
+    cat(msg)
+
     trimed_dada2 <- readRDS(trimed_dada2_fn)
   }
 
   names(filtFs) <- sample_names
   names(filtRs) <- sample_names
 
-  seqtab_fn <- paste0(r_data_dir, "/", "seqtab.rds")
-  denoised_fn <- paste0(r_data_dir, "/", "denoised_merged_fqs.rds")
-  dada_forward_fn <- paste0(r_data_dir, "/", "data_forward.rds")
-  dada_reverse_fn <- paste0(r_data_dir, "/", "data_reverse.rds")
+  return(list("trimed_dada2" = trimed_dada2,
+              "filt_fs" = filtFs,
+              "filt_rs" = filtRs))
+}
+
+get_err_models <- function(filtFs,
+                           filtRs) {
+
+  paired <- FALSE
+
+  if(!is.null(filtRs)) {
+    paired <- TRUE
+  }
+
   err_forward_fn <- paste0(r_data_dir, "/", "err_forward.rds")
   err_reverse_fn <- paste0(r_data_dir, "/", "err_reverse.rds")
 
-  seqtab <- NULL
-  dadaFs <- NULL
-  dadaRs <- NULL
+  errF <- NULL
+  errR <- NULL
 
-  if(!file.exists(denoised_fn) & paired) {
-
-    errF <- NULL
-    errR <- NULL
+  if(paired) {
 
     if(!file.exists(err_forward_fn) & !file.exists(err_reverse_fn)) {
 
@@ -182,13 +225,37 @@ get_otus <- function(fq_dir,
                           multithread=multithread)
 
       saveRDS(object = errR, file = err_reverse_fn)
-    }
-    else {
+    } else {
 
       errF <- readRDS(err_forward_fn)
       errR <- readRDS(err_reverse_fn)
 
     }
+
+    return(list("err_f" = errF,
+                "err_r" = errR))
+  } else {
+
+    if(!file.exists(err_forward_fn)) {
+
+      errF <- learnErrors(filtFs,
+                          randomize = TRUE,
+                          verbose = TRUE,
+                          MAX_CONSIST = 20,
+                          multithread=TRUE)
+
+      saveRDS(object = errF, file = err_forward_fn)
+    } else {
+      errF <- readRDS(err_forward_fn)
+    }
+
+    return(list("err_f" = errF,
+                "err_r" = NULL))
+
+  }
+}
+
+get_otus_large <- function(trimed_dada2) {
 
     if(large) {
 
@@ -240,41 +307,65 @@ get_otus <- function(fq_dir,
       saveRDS(object = seqtab, file = seqtab_fn)
       saveRDS(object = mergers, file = denoised_fn)
 
-    } else {
+}
+}
 
-      derepFs <- derepFastq(filtFs)
-      names(derepFs) <- sample_names
+get_otus <- function(trimed_dada2,
+                     filtFs,
+                     filtRs,
+                     errFs,
+                     errRs,
+                     r_data_dir = "data",
+                     multithread = TRUE,
+                     omega_a = 1e-40,
+                     omega_c = 1e-40) {
 
-      derepRs <- derepFastq(filtRs)
-      names(derepRs) <- sample_names
+  seqtab_fn <- paste0(r_data_dir, "/", "seqtab.rds")
+  denoised_fn <- paste0(r_data_dir, "/", "denoised_merged_fqs.rds")
+  dada_forward_fn <- paste0(r_data_dir, "/", "data_forward.rds")
+  dada_reverse_fn <- paste0(r_data_dir, "/", "data_reverse.rds")
 
-      dadaFs <- dada(derepFs,
-                     err=errF,
-                     pool=TRUE,
-                     verbose = TRUE,
-                     OMEGA_C = omega_c,
-                     OMEGA_A = omega_a,
-                     MIN_FOLD = 1,
-                     multithread = multithread)
+  paired <- FALSE
 
-      dadaRs <- dada(derepRs,
-                     err=errR,
-                     pool=TRUE,
-                     verbose = TRUE,
-                     OMEGA_C = omega_c,
-                     OMEGA_A = omega_a,
-                     MIN_FOLD = 1,
-                     multithread = multithread)
+  if(!is.null(filtRs)) {
+    paired <- TRUE
+  }
 
-      saveRDS(object = dadaFs, file = dada_forward_fn)
-      saveRDS(object = dadaRs, file = dada_reverse_fn)
+  if(!file.exists(seqtab_fn) & paired) {
 
-      mergers <- mergePairs(dadaFs, derepFs, dadaRs, derepRs)
-      seqtab <- makeSequenceTable(mergers)
+    derepFs <- derepFastq(filtFs)
+    names(derepFs) <- rownames(filtFs)
 
-      saveRDS(object = seqtab, file = seqtab_fn)
-      saveRDS(object = mergers, file = denoised_fn)
-    }
+    derepRs <- derepFastq(filtRs)
+    names(derepRs) <- rownames(filtRs)
+
+    dadaFs <- dada(derepFs,
+                   err=errF,
+                   pool=TRUE,
+                   verbose = TRUE,
+                   OMEGA_C = omega_c,
+                   OMEGA_A = omega_a,
+                   MIN_FOLD = 1,
+                   multithread = multithread)
+
+    dadaRs <- dada(derepRs,
+                   err=errR,
+                   pool=TRUE,
+                   verbose = TRUE,
+                   OMEGA_C = omega_c,
+                   OMEGA_A = omega_a,
+                   MIN_FOLD = 1,
+                   multithread = multithread)
+
+    saveRDS(object = dadaFs, file = dada_forward_fn)
+    saveRDS(object = dadaRs, file = dada_reverse_fn)
+
+    mergers <- mergePairs(dadaFs, derepFs, dadaRs, derepRs)
+    seqtab <- makeSequenceTable(mergers)
+
+    saveRDS(object = seqtab, file = seqtab_fn)
+    saveRDS(object = mergers, file = denoised_fn)
+  }
 
   } else if(!file.exists(seqtab_fn) & !paired) {
 
@@ -288,8 +379,7 @@ get_otus <- function(fq_dir,
       #  ddF <- dada(derepF, err=errF, multithread=TRUE)
       #  dds[[sam]] <- dada(derep, err=err, multithread=TRUE)
       #}
-    }
-    else {
+    } else {
 
       derepFs <- derepFastq(filtFs)
       names(derepFs) <- sample_names
@@ -315,16 +405,13 @@ get_otus <- function(fq_dir,
       saveRDS(object = seqtab, file = seqtab_fn)
     }
 
-  }
-
-  else {
+  } else {
     if(paired) {
       dadaFs <- readRDS(dada_forward_fn)
       dadaRs <- readRDS(dada_reverse_fn)
       mergers <- readRDS(denoised_fn)
       seqtab <- readRDS(seqtab_fn)
-    }
-    else {
+    } else {
       dadaFs <- readRDS(dada_forward_fn)
       seqtab <- readRDS(seqtab_fn)
     }
@@ -372,8 +459,7 @@ get_otus <- function(fq_dir,
                          "denoisedR",
                          "merged",
                          "nonchim")
-  }
-  else {
+  } else {
 
     track <- cbind(trimed_dada2,
                    sapply(dadaFs, get_uniq),

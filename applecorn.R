@@ -84,6 +84,7 @@ if(multiple) {
                      trim_left = config$trim_left,
                      trunc_len = config$trunc_len,
                      #trunc_q = config$trunc_q,
+                     large = config$dada_large,
                      max_ee = config$max_ee,
                      r_data_dir = res_dir,
                      filt_path = filt_dir)
@@ -125,9 +126,9 @@ fit_tree <- config$fit_tree
 
 if(fit_tree) {
 
-  fitGTR <- fit_tree(seqtab_nochim,
-                     taxatab,
-                     r_data_dir = r_data_dir)
+  fitGTR <- do_tree_fit(seqtab_nochim,
+                        taxatab,
+                        r_data_dir = r_data_dir)
 
 }
 
@@ -137,13 +138,21 @@ ps <- mk_phyloseq(taxtab,
                   metadata,
                   r_data_dir = r_data_dir)
 
-tree <- mk_tree(ps, plt_title = "Raw tree")
-ps_filt <- filt_phyloseq(ps, tree[["mean"]], tree[["sd"]])
-tree_filt <- mk_tree(ps_filt[["ps_filt"]], plt_title = "Filtered tree")
+tree <- NULL
+tree_filt <- NULL
+ps_filt <- NULL
+
+if(fit_tree) {
+
+  tree <- mk_tree(ps, plt_title = "Raw tree")
+  ps_filt <- filt_phyloseq(ps, tree[["mean"]], tree[["sd"]])
+  tree_filt <- mk_tree(ps_filt[["ps_filt"]], plt_title = "Filtered tree")
+
+}
 
 main_ps <- ps
 
-if(config$ps_filt) {
+if(config$ps_filt & !is.null(ps_filt)) {
   main_ps <- ps_filt[["ps_filt"]]
 }
 
@@ -162,7 +171,7 @@ plts[[alpha_fn]] <- alpha[["plot"]]
 rare_curve <- NULL
 
 if(config$rarefy) {
-  rare_curve <- do_rare_curve(ps_filt[["ps_filt"]])
+  rare_curve <- do_rare_curve(main_ps)
 }
 
 dist_binary <- config$dist_binary

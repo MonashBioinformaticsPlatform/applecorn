@@ -24,9 +24,9 @@ do_taxa_ann <- function(seqtab_nochim,
   return(taxtab)
 }
 
-fit_tree <- function(seqtab_nochim,
-                     taxatab,
-                     r_data_dir = "data") {
+do_tree_fit <- function(seqtab_nochim,
+                        taxatab,
+                        r_data_dir = "data") {
 
   alignment_fn <- paste0(r_data_dir, "/", "alignment.rds")
 
